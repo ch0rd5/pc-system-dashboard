@@ -1,7 +1,10 @@
+from datetime import datetime
 import tkinter as tk
 from tkinter import ttk
 
 from metrics import (
+    format_percent,
+    format_gb_usage,
     get_cpu_usage,
     get_memory_usage,
     get_disk_usage,
@@ -21,6 +24,14 @@ class Dashboard:
         self.disk_value, self.disk_detail = self.create_card("Disk Usage", 1, 0)
         self.uptime_value, self.uptime_detail = self.create_card("System Uptime", 1, 1)
 
+        self.last_updated = ttk.Label(self.frame, text="Last updated: --")
+        self.last_updated.grid(
+            row=2,
+            column=0,
+            columnspan=2,
+            pady=(5, 0),
+        )
+
         self.update_metrics()
 
     def create_card(self, title, row, column):
@@ -39,21 +50,30 @@ class Dashboard:
         return value_label, detail_label
 
     def update_metrics(self):
+        cpu = get_cpu_usage()
         memory = get_memory_usage()
         disk = get_disk_usage()
+        uptime = get_uptime()
 
-        self.cpu_value.config(text=f"{get_cpu_usage()}%")
+        self.cpu_value.config(text=format_percent(cpu))
 
-        self.ram_value.config(text=f"{memory['percent']}%")
-        self.ram_detail.config(
-            text=f"{memory['used_gb']:.1f} GB / {memory['total_gb']:.1f} GB"
+        self.ram_value.config(
+            text=format_percent(memory["percent"] if memory else None)
         )
+        self.ram_detail.config(text=format_gb_usage(memory))
 
-        self.disk_value.config(text=f"{disk['percent']}%")
-        self.disk_detail.config(
-            text=f"{disk['used_gb']:.1f} GB / {disk['total_gb']:.1f} GB"
+        self.disk_value.config(
+            text=format_percent(disk["percent"] if disk else None)
         )
+        self.disk_detail.config(text=format_gb_usage(disk))
 
-        self.uptime_value.config(text=get_uptime())
+        if uptime is not None:
+            self.uptime_value.config(text=uptime)
+        else:
+            self.uptime_value.config(text="Unavailable")
+
+        self.last_updated.config(
+            text=f"Last updated: {datetime.now().strftime('%I:%M:%S %p')}"
+        )
 
         self.root.after(1000, self.update_metrics)
