@@ -164,3 +164,7 @@ The original project requirements and milestone specification are available here
 * No per-process controls
 * No configurable thresholds
 * No automated test suite
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
